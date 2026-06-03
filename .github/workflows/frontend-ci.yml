@@ -192,16 +192,16 @@ jobs:
           echo "=== Curl Test ==="
           curl -v http://localhost:3000 || true
 
+      - name: Fix permissions
+        run: chmod -R 777 .
+
       - name: Run ZAP Baseline Scan
         run: |
           docker run --rm \
             --network host \
-            -v $(pwd):/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://localhost:3000 \
-            -J report_json.json \
-            -r report.html \
             -a
 
       - name: Upload ZAP report to DefectDojo
