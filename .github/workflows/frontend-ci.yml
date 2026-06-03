@@ -199,11 +199,21 @@ jobs:
         run: |
           docker run --rm \
             --network host \
+            -v $(pwd):/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://localhost:3000 \
+            -J report_json.json \
+            -w report_md.md \
+            -r report_html.html \
             -I \
             -a
+
+      - name: Verify ZAP Reports
+        run: |
+          pwd
+          ls -lah
+          ls -lah report*
 
       - name: Upload ZAP report to DefectDojo
         run: |
