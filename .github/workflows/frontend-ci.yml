@@ -123,7 +123,13 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: config
-          format: table
+          format: json
+          output: trivy-report.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trivy-config-report
+          path: trivy-report.json
 
   trivy-image-scan:
     runs-on: ubuntu-latest
@@ -131,13 +137,17 @@ jobs:
     needs: docker-build-push
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Run Trivy Image Scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:latest
-          format: table
+          format: json
+          output: trivy-image-report.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-report
+          path: trivy-image-report.json
 
   publish-security-reports:
     runs-on: ubuntu-latest
@@ -145,7 +155,31 @@ jobs:
     needs:
       - trivy-config-scan
       - trivy-image-scan
-
     steps:
-      - name: Publish reports
-        run: echo "Security reports published"
+      - uses: actions/download-artifact@v4
+        with:
+          name: trivy-config-report
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: trivy-image-report
+
+      - name: Upload Trivy Config report
+        run: |
+          curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+          -H "Authorization: Token ${{ secrets.DEFECTDOJO_API_KEY }}" \
+          -F "engagement=${{ secrets.DEFECTDOJO_ENGAGEMENT_ID }}" \
+          -F "scan_type=Trivy Config Scan" \
+          -F "file=@trivy-report.json" \
+          -F "active=true" \
+          -F "verified=true"
+
+      - name: Upload Trivy Image report
+        run: |
+          curl -X POST "${{ secrets.DEFECTDOJO_URL }}/api/v2/import-scan/" \
+          -H "Authorization: Token ${{ secrets.DEFECTDOJO_API_KEY }}" \
+          -F "engagement=${{ secrets.DEFECTDOJO_ENGAGEMENT_ID }}" \
+          -F "scan_type=Trivy Scan" \
+          -F "file=@trivy-image-report.json" \
+          -F "active=true" \
+          -F "verified=true"
