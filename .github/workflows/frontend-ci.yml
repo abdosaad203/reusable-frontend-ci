@@ -158,10 +158,23 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Create network
+        run: docker network create zap-net
+
+      - name: Dummy identity container
+        run: |
+          docker run -d \
+            --name identity-api-backend \
+            --network zap-net \
+            nginx:alpine
+
       - name: Run frontend container
         run: |
-          docker run -d --name frontend-app -p 3000:80 \
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:latest
+          docker run -d \
+            --name frontend-app \
+            --network zap-net \
+            -p 3000:80 \
+            ghcr.io/abdosaad203/ecommerce-frontend:latest
 
       - name: Wait for app
         run: |
@@ -180,11 +193,16 @@ jobs:
           curl -v http://localhost:3000 || true
 
       - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
-        with:
-          target: 'http://localhost:3000'
-          cmd_options: '-a'
-          allow_issue_writing: false
+        run: |
+          docker run --rm \
+            --network host \
+            -v $(pwd):/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:3000 \
+            -J report_json.json \
+            -r report.html \
+            -a
 
       - name: Upload ZAP report to DefectDojo
         run: |
