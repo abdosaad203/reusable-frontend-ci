@@ -168,6 +168,17 @@ jobs:
           echo "Waiting for frontend..."
           sleep 30
 
+      - name: Verify frontend
+        run: |
+          echo "=== Docker Containers ==="
+          docker ps -a
+
+          echo "=== Container Logs ==="
+          docker logs frontend-app || true
+
+          echo "=== Curl Test ==="
+          curl -v http://localhost:3000 || true
+
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
