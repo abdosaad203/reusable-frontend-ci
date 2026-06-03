@@ -172,7 +172,8 @@ jobs:
           -F "scan_type=Trivy Config Scan" \
           -F "file=@trivy-report.json" \
           -F "active=true" \
-          -F "verified=true"
+          -F "verified=true" 
+          
 
       - name: Upload Trivy Image report
         run: |
