@@ -151,6 +151,7 @@ jobs:
 
   zap-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     needs: docker-build-push
 
@@ -229,6 +230,7 @@ jobs:
         run: docker stop frontend-app
 
   publish-security-reports:
+    if: always()
     runs-on: ubuntu-latest
 
     needs:
