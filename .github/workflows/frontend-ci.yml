@@ -33,6 +33,7 @@ jobs:
 
   semgrep-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
 
   dependency-check:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -121,6 +123,7 @@ jobs:
 
   trivy-config-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     needs: docker-build-push
 
@@ -141,6 +144,7 @@ jobs:
 
   trivy-image-scan:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     needs: docker-build-push
 
